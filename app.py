@@ -182,7 +182,7 @@ if uploaded_file:
         tenant_system.append({
 
             "Tenant": tenant,
-            "Total EXecutions": len(group),
+            "Total Executions": len(group),
 
             "System Jobs": format_runtime(sys_true),
             "User Defined Jobs": format_runtime(sys_false),
@@ -254,7 +254,7 @@ if uploaded_file:
         job_metrics.append({
 
             "Tenant": tenant,
-            "JobId": job,
+            "Job Id": job,
             "Job Name": job_name,
             "Total Executions": len(group),
 
@@ -273,3 +273,59 @@ if uploaded_file:
 
     st.subheader("Job Wise Run Time Metrics :")
     st.dataframe(job_df, use_container_width=True)
+
+    # ------------------------------------------------
+# DOWNLOAD ALL TABLES AS EXCEL
+# ------------------------------------------------
+
+import io
+
+def convert_to_excel():
+
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+
+        system_table.to_excel(
+            writer,
+            sheet_name="System_and_userDefined_Jobs",
+            index=False
+        )
+
+        trigger_table.to_excel(
+            writer,
+            sheet_name="adHoc_scheduled_Jobs",
+            index=False
+        )
+
+        tenant_system_df.to_excel(
+            writer,
+            sheet_name="tenantWise_System_and_userDefined_Jobs",
+            index=False
+        )
+
+        tenant_trigger_df.to_excel(
+            writer,
+            sheet_name="tenantWise_adHoc_scheduled_Jobs",
+            index=False
+        )
+
+        job_df.to_excel(
+            writer,
+            sheet_name="Job_Wise_Metrics",
+            index=False
+        )
+
+    output.seek(0)
+
+    return output
+
+
+excel_file = convert_to_excel()
+
+st.download_button(
+    label="📥 Download All Metrics as Excel",
+    data=excel_file,
+    file_name="job_runtime_metrics.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
