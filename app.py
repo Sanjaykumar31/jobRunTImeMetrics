@@ -288,25 +288,25 @@ def convert_to_excel():
 
         system_table.to_excel(
             writer,
-            sheet_name="System_and_userDefined_Jobs",
+            sheet_name="Global_System_Jobs",
             index=False
         )
 
         trigger_table.to_excel(
             writer,
-            sheet_name="adHoc_scheduled_Jobs",
+            sheet_name="Global_Trigger_Jobs",
             index=False
         )
 
         tenant_system_df.to_excel(
             writer,
-            sheet_name="tenantWise_System_and_userDefined_Jobs",
+            sheet_name="Tenant_System_Metrics",
             index=False
         )
 
         tenant_trigger_df.to_excel(
             writer,
-            sheet_name="tenantWise_adHoc_scheduled_Jobs",
+            sheet_name="Tenant_Trigger_Metrics",
             index=False
         )
 
