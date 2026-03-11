@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 
 st.set_page_config(page_title="Job Runtime Analyzer", layout="wide")
 
@@ -69,7 +70,52 @@ def parse_runtime(value):
 
 
 # --------------------------------------------------
-# Process file
+# EXCEL EXPORT FUNCTION
+# --------------------------------------------------
+
+def convert_to_excel(system_table, trigger_table, tenant_system_df, tenant_trigger_df, job_df):
+
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+
+        system_table.to_excel(
+            writer,
+            sheet_name="Global_System_Jobs",
+            index=False
+        )
+
+        trigger_table.to_excel(
+            writer,
+            sheet_name="Global_Trigger_Jobs",
+            index=False
+        )
+
+        tenant_system_df.to_excel(
+            writer,
+            sheet_name="Tenant_System_Metrics",
+            index=False
+        )
+
+        tenant_trigger_df.to_excel(
+            writer,
+            sheet_name="Tenant_Trigger_Metrics",
+            index=False
+        )
+
+        job_df.to_excel(
+            writer,
+            sheet_name="Job_Wise_Metrics",
+            index=False
+        )
+
+    output.seek(0)
+
+    return output
+
+
+# --------------------------------------------------
+# PROCESS FILE
 # --------------------------------------------------
 
 if uploaded_file:
@@ -198,10 +244,10 @@ if uploaded_file:
     ).drop(columns=["Total_ms"])
 
     st.subheader("Tenant Wise System & User Defined Job Run Time Metrics :")
-    st.dataframe(tenant_system_df,use_container_width=True)
+    st.dataframe(tenant_system_df, use_container_width=True)
 
     # ------------------------------------------------
-    # Tenant Wise Trigger Type Run Time Metrics
+    # TENANT TRIGGER METRICS
     # ------------------------------------------------
 
     tenant_trigger = []
@@ -235,7 +281,7 @@ if uploaded_file:
     st.dataframe(tenant_trigger_df, use_container_width=True)
 
     # ------------------------------------------------
-    # Job Wise Run Time Metrics
+    # JOB METRICS
     # ------------------------------------------------
 
     job_df_filtered = df[df["isSystemJob"] == "FALSE"]
@@ -275,57 +321,20 @@ if uploaded_file:
     st.dataframe(job_df, use_container_width=True)
 
     # ------------------------------------------------
-# DOWNLOAD ALL TABLES AS EXCEL
-# ------------------------------------------------
+    # DOWNLOAD BUTTON
+    # ------------------------------------------------
 
-import io
+    excel_file = convert_to_excel(
+        system_table,
+        trigger_table,
+        tenant_system_df,
+        tenant_trigger_df,
+        job_df
+    )
 
-def convert_to_excel():
-
-    output = io.BytesIO()
-
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-
-        system_table.to_excel(
-            writer,
-            sheet_name="Global_System_Jobs",
-            index=False
-        )
-
-        trigger_table.to_excel(
-            writer,
-            sheet_name="Global_Trigger_Jobs",
-            index=False
-        )
-
-        tenant_system_df.to_excel(
-            writer,
-            sheet_name="Tenant_System_Metrics",
-            index=False
-        )
-
-        tenant_trigger_df.to_excel(
-            writer,
-            sheet_name="Tenant_Trigger_Metrics",
-            index=False
-        )
-
-        job_df.to_excel(
-            writer,
-            sheet_name="Job_Wise_Metrics",
-            index=False
-        )
-
-    output.seek(0)
-
-    return output
-
-
-excel_file = convert_to_excel()
-
-st.download_button(
-    label="📥 Download All Metrics as Excel",
-    data=excel_file,
-    file_name="job_runtime_metrics.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
+    st.download_button(
+        label="📥 Download All Metrics as Excel",
+        data=excel_file,
+        file_name="job_runtime_metrics.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
